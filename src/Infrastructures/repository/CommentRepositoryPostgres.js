@@ -125,6 +125,47 @@ class CommentRepositoryPostgres extends CommentRepository {
       throw new NotFoundError('balasan tidak ditemukan');
     }
   }
+
+  async getCommentsByThreadId(threadId) {
+    const query = {
+      text: `SELECT comments.id, users.username, comments.date, comments.content, comments.is_delete
+             FROM comments
+             INNER JOIN users ON comments.owner = users.id
+             WHERE comments.thread_id = $1 AND comments.reply_to IS NULL
+             ORDER BY comments.date ASC`,
+      values: [threadId],
+    };
+
+    const result = await this._pool.query(query);
+    return result.rows.map((row) => ({
+      id: row.id,
+      username: row.username,
+      date: row.date,
+      content: row.content,
+      isDelete: row.is_delete,
+    }));
+  }
+
+  async getRepliesByThreadId(threadId) {
+    const query = {
+      text: `SELECT comments.id, comments.reply_to, users.username, comments.date, comments.content, comments.is_delete
+             FROM comments
+             INNER JOIN users ON comments.owner = users.id
+             WHERE comments.thread_id = $1 AND comments.reply_to IS NOT NULL
+             ORDER BY comments.date ASC`,
+      values: [threadId],
+    };
+
+    const result = await this._pool.query(query);
+    return result.rows.map((row) => ({
+      id: row.id,
+      replyTo: row.reply_to,
+      username: row.username,
+      date: row.date,
+      content: row.content,
+      isDelete: row.is_delete,
+    }));
+  }
 }
 
 export default CommentRepositoryPostgres;

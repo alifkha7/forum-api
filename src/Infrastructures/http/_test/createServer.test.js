@@ -888,6 +888,138 @@ describe('HTTP server', () => {
     });
   });
 
+  describe('when GET /threads/:threadId', () => {
+    it('should response 200 and return thread detail with comments and nested replies correctly', async () => {
+      // Arrange
+      const serverApp = await createServer(container);
+
+      // Register dicoding
+      await request(serverApp).post('/users').send({
+        username: 'dicoding',
+        password: 'secret_password',
+        fullname: 'Dicoding Indonesia',
+      });
+      const dicodingAuth = await request(serverApp).post('/authentications').send({
+        username: 'dicoding',
+        password: 'secret_password',
+      });
+      const dicodingToken = dicodingAuth.body.data.accessToken;
+
+      // Register johndoe
+      await request(serverApp).post('/users').send({
+        username: 'johndoe',
+        password: 'secret_password',
+        fullname: 'John Doe',
+      });
+      const johnAuth = await request(serverApp).post('/authentications').send({
+        username: 'johndoe',
+        password: 'secret_password',
+      });
+      const johnToken = johnAuth.body.data.accessToken;
+
+      // Create thread
+      const threadResponse = await request(serverApp)
+        .post('/threads')
+        .set('Authorization', `Bearer ${dicodingToken}`)
+        .send({
+          title: 'sebuah thread',
+          body: 'sebuah body thread',
+        });
+      const { id: threadId } = threadResponse.body.data.addedThread;
+
+      // Dicoding adds comment 1
+      const comment1Response = await request(serverApp)
+        .post(`/threads/${threadId}/comments`)
+        .set('Authorization', `Bearer ${dicodingToken}`)
+        .send({
+          content: 'komentar pertama',
+        });
+      const { id: comment1Id } = comment1Response.body.data.addedComment;
+
+      // John adds comment 2
+      const comment2Response = await request(serverApp)
+        .post(`/threads/${threadId}/comments`)
+        .set('Authorization', `Bearer ${johnToken}`)
+        .send({
+          content: 'komentar kedua',
+        });
+      const { id: comment2Id } = comment2Response.body.data.addedComment;
+
+      // Dicoding replies to comment 1
+      const reply1Response = await request(serverApp)
+        .post(`/threads/${threadId}/comments/${comment1Id}/replies`)
+        .set('Authorization', `Bearer ${dicodingToken}`)
+        .send({
+          content: 'balasan pertama',
+        });
+      const { id: reply1Id } = reply1Response.body.data.addedReply;
+
+      // John replies to comment 1
+      const reply2Response = await request(serverApp)
+        .post(`/threads/${threadId}/comments/${comment1Id}/replies`)
+        .set('Authorization', `Bearer ${johnToken}`)
+        .send({
+          content: 'balasan kedua',
+        });
+      const { id: reply2Id } = reply2Response.body.data.addedReply;
+
+      // Delete comment 1 and reply 1
+      await request(serverApp)
+        .delete(`/threads/${threadId}/comments/${comment1Id}`)
+        .set('Authorization', `Bearer ${dicodingToken}`);
+      await request(serverApp)
+        .delete(`/threads/${threadId}/comments/${comment1Id}/replies/${reply1Id}`)
+        .set('Authorization', `Bearer ${dicodingToken}`);
+
+      // Action: GET thread detail (public endpoint, no token)
+      const response = await request(serverApp).get(`/threads/${threadId}`);
+
+      // Assert
+      expect(response.status).toEqual(200);
+      expect(response.body.status).toEqual('success');
+      expect(response.body.data.thread).toBeDefined();
+      expect(response.body.data.thread.id).toEqual(threadId);
+      expect(response.body.data.thread.title).toEqual('sebuah thread');
+      expect(response.body.data.thread.body).toEqual('sebuah body thread');
+      expect(response.body.data.thread.username).toEqual('dicoding');
+      expect(response.body.data.thread.comments).toHaveLength(2);
+
+      // Comment 1 is deleted, should have masked content and 2 replies
+      const [firstComment, secondComment] = response.body.data.thread.comments;
+      expect(firstComment.id).toEqual(comment1Id);
+      expect(firstComment.username).toEqual('dicoding');
+      expect(firstComment.content).toEqual('**komentar telah dihapus**');
+      expect(firstComment.replies).toHaveLength(2);
+
+      // Reply 1 is deleted, Reply 2 is active
+      expect(firstComment.replies[0].id).toEqual(reply1Id);
+      expect(firstComment.replies[0].content).toEqual('**balasan telah dihapus**');
+      expect(firstComment.replies[0].username).toEqual('dicoding');
+
+      expect(firstComment.replies[1].id).toEqual(reply2Id);
+      expect(firstComment.replies[1].content).toEqual('balasan kedua');
+      expect(firstComment.replies[1].username).toEqual('johndoe');
+
+      // Comment 2 is active with no replies
+      expect(secondComment.id).toEqual(comment2Id);
+      expect(secondComment.username).toEqual('johndoe');
+      expect(secondComment.content).toEqual('komentar kedua');
+      expect(secondComment.replies).toEqual([]);
+    });
+
+    it('should response 404 when thread not found', async () => {
+      // Arrange
+      const serverApp = await createServer(container);
+
+      // Action
+      const response = await request(serverApp).get('/threads/thread-xxx');
+
+      // Assert
+      expect(response.status).toEqual(404);
+      expect(response.body.status).toEqual('fail');
+    });
+  });
+
   it('should handle server error correctly', async () => {
     // Arrange
     const requestPayload = {

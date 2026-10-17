@@ -3,6 +3,7 @@ import AddCommentUseCase from '../../../../Applications/use_case/AddCommentUseCa
 import DeleteCommentUseCase from '../../../../Applications/use_case/DeleteCommentUseCase.js';
 import AddReplyUseCase from '../../../../Applications/use_case/AddReplyUseCase.js';
 import DeleteReplyUseCase from '../../../../Applications/use_case/DeleteReplyUseCase.js';
+import GetThreadDetailUseCase from '../../../../Applications/use_case/GetThreadDetailUseCase.js';
 
 class ThreadsHandler {
   constructor(container) {
@@ -13,6 +14,7 @@ class ThreadsHandler {
     this.deleteCommentHandler = this.deleteCommentHandler.bind(this);
     this.postReplyHandler = this.postReplyHandler.bind(this);
     this.deleteReplyHandler = this.deleteReplyHandler.bind(this);
+    this.getThreadDetailHandler = this.getThreadDetailHandler.bind(this);
   }
 
   async postThreadHandler(req, res, next) {
@@ -92,6 +94,23 @@ class ThreadsHandler {
 
       return res.status(200).json({
         status: 'success',
+      });
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async getThreadDetailHandler(req, res, next) {
+    try {
+      const getThreadDetailUseCase = this._container.getInstance(GetThreadDetailUseCase.name);
+      const { threadId } = req.params;
+      const thread = await getThreadDetailUseCase.execute(threadId);
+
+      return res.status(200).json({
+        status: 'success',
+        data: {
+          thread,
+        },
       });
     } catch (error) {
       return next(error);

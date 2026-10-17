@@ -9,6 +9,7 @@ const routes = (handler, container) => {
   router.delete('/:threadId/comments/:commentId', authMiddleware(container), handler.deleteCommentHandler);
   router.post('/:threadId/comments/:commentId/replies', authMiddleware(container), handler.postReplyHandler);
   router.delete('/:threadId/comments/:commentId/replies/:replyId', authMiddleware(container), handler.deleteReplyHandler);
+  router.get('/:threadId', handler.getThreadDetailHandler);
 
   return router;
 };
