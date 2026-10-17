@@ -1,6 +1,8 @@
 import AddThreadUseCase from '../../../../Applications/use_case/AddThreadUseCase.js';
 import AddCommentUseCase from '../../../../Applications/use_case/AddCommentUseCase.js';
 import DeleteCommentUseCase from '../../../../Applications/use_case/DeleteCommentUseCase.js';
+import AddReplyUseCase from '../../../../Applications/use_case/AddReplyUseCase.js';
+import DeleteReplyUseCase from '../../../../Applications/use_case/DeleteReplyUseCase.js';
 
 class ThreadsHandler {
   constructor(container) {
@@ -9,6 +11,8 @@ class ThreadsHandler {
     this.postThreadHandler = this.postThreadHandler.bind(this);
     this.postCommentHandler = this.postCommentHandler.bind(this);
     this.deleteCommentHandler = this.deleteCommentHandler.bind(this);
+    this.postReplyHandler = this.postReplyHandler.bind(this);
+    this.deleteReplyHandler = this.deleteReplyHandler.bind(this);
   }
 
   async postThreadHandler(req, res, next) {
@@ -52,6 +56,39 @@ class ThreadsHandler {
       const { id: owner } = req.auth;
       const { threadId, commentId } = req.params;
       await deleteCommentUseCase.execute(threadId, commentId, owner);
+
+      return res.status(200).json({
+        status: 'success',
+      });
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async postReplyHandler(req, res, next) {
+    try {
+      const addReplyUseCase = this._container.getInstance(AddReplyUseCase.name);
+      const { id: owner } = req.auth;
+      const { threadId, commentId } = req.params;
+      const addedReply = await addReplyUseCase.execute(req.body, threadId, commentId, owner);
+
+      return res.status(201).json({
+        status: 'success',
+        data: {
+          addedReply,
+        },
+      });
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async deleteReplyHandler(req, res, next) {
+    try {
+      const deleteReplyUseCase = this._container.getInstance(DeleteReplyUseCase.name);
+      const { id: owner } = req.auth;
+      const { threadId, commentId, replyId } = req.params;
+      await deleteReplyUseCase.execute(threadId, commentId, replyId, owner);
 
       return res.status(200).json({
         status: 'success',

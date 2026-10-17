@@ -67,6 +67,64 @@ class CommentRepositoryPostgres extends CommentRepository {
       throw new NotFoundError('komentar tidak ditemukan');
     }
   }
+
+  async addReply(newReply, commentId) {
+    const { content, threadId, owner } = newReply;
+    const id = `reply-${this._idGenerator()}`;
+    const date = new Date().toISOString();
+
+    const query = {
+      text: 'INSERT INTO comments(id, content, thread_id, owner, date, reply_to) VALUES($1, $2, $3, $4, $5, $6) RETURNING id, content, owner',
+      values: [id, content, threadId, owner, date, commentId],
+    };
+
+    const result = await this._pool.query(query);
+
+    return { ...result.rows[0] };
+  }
+
+  async verifyAvailableReply(replyId) {
+    const query = {
+      text: 'SELECT id FROM comments WHERE id = $1 AND reply_to IS NOT NULL',
+      values: [replyId],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rowCount) {
+      throw new NotFoundError('balasan tidak ditemukan');
+    }
+  }
+
+  async verifyReplyOwner(replyId, owner) {
+    const query = {
+      text: 'SELECT owner FROM comments WHERE id = $1 AND reply_to IS NOT NULL',
+      values: [replyId],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rowCount) {
+      throw new NotFoundError('balasan tidak ditemukan');
+    }
+
+    if (result.rows[0].owner !== owner) {
+      throw new AuthorizationError('anda tidak berhak mengakses resource ini');
+    }
+  }
+
+  async deleteReply(replyId) {
+    const query = {
+      text: 'UPDATE comments SET is_delete = true WHERE id = $1 AND reply_to IS NOT NULL',
+      values: [replyId],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rowCount) {
+      throw new NotFoundError('balasan tidak ditemukan');
+    }
+  }
 }
 
 export default CommentRepositoryPostgres;
