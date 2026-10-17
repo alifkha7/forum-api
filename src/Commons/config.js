@@ -1,4 +1,5 @@
 /* istanbul ignore file */
+/* v8 ignore file */
 import dotenv from 'dotenv';
 import path from 'path';
 
