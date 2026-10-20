@@ -14,8 +14,9 @@ class GetThreadDetailUseCase {
 
     // Group replies by parent comment
     const repliesByCommentId = rawReplies.reduce((acc, reply) => {
-      if (!acc[reply.replyTo]) {
-        acc[reply.replyTo] = [];
+      const parentCommentId = reply.reply_to || reply.replyTo;
+      if (!acc[parentCommentId]) {
+        acc[parentCommentId] = [];
       }
 
       const detailReply = new DetailReply({
@@ -23,10 +24,10 @@ class GetThreadDetailUseCase {
         username: reply.username,
         date: reply.date,
         content: reply.content,
-        isDelete: reply.isDelete,
+        isDelete: reply.is_delete !== undefined ? reply.is_delete : reply.isDelete,
       });
 
-      acc[reply.replyTo].push({
+      acc[parentCommentId].push({
         id: detailReply.id,
         content: detailReply.content,
         date: detailReply.date,
@@ -44,7 +45,7 @@ class GetThreadDetailUseCase {
         username: comment.username,
         date: comment.date,
         content: comment.content,
-        isDelete: comment.isDelete,
+        isDelete: comment.is_delete !== undefined ? comment.is_delete : comment.isDelete,
         replies: commentReplies,
       });
 

@@ -23,33 +23,33 @@ describe('GetThreadDetailUseCase', () => {
         username: 'johndoe',
         date: '2026-10-17T01:00:00.000Z',
         content: 'komentar pertama',
-        isDelete: false,
+        is_delete: false,
       },
       {
         id: 'comment-2',
         username: 'dicoding',
         date: '2026-10-17T02:00:00.000Z',
         content: 'komentar kedua',
-        isDelete: true,
+        is_delete: true,
       },
     ];
 
     const mockReplies = [
       {
         id: 'reply-1',
-        replyTo: 'comment-1',
+        reply_to: 'comment-1',
         username: 'dicoding',
         date: '2026-10-17T01:10:00.000Z',
         content: 'balasan pertama',
-        isDelete: false,
+        is_delete: false,
       },
       {
         id: 'reply-2',
-        replyTo: 'comment-1',
+        reply_to: 'comment-1',
         username: 'johndoe',
         date: '2026-10-17T01:20:00.000Z',
         content: 'balasan kedua',
-        isDelete: true,
+        is_delete: true,
       },
     ];
 

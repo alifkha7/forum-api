@@ -137,13 +137,7 @@ class CommentRepositoryPostgres extends CommentRepository {
     };
 
     const result = await this._pool.query(query);
-    return result.rows.map((row) => ({
-      id: row.id,
-      username: row.username,
-      date: row.date,
-      content: row.content,
-      isDelete: row.is_delete,
-    }));
+    return result.rows;
   }
 
   async getRepliesByThreadId(threadId) {
@@ -157,14 +151,7 @@ class CommentRepositoryPostgres extends CommentRepository {
     };
 
     const result = await this._pool.query(query);
-    return result.rows.map((row) => ({
-      id: row.id,
-      replyTo: row.reply_to,
-      username: row.username,
-      date: row.date,
-      content: row.content,
-      isDelete: row.is_delete,
-    }));
+    return result.rows;
   }
 }
 

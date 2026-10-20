@@ -265,4 +265,67 @@ describe('CommentRepositoryPostgres', () => {
       expect(replies[0].is_delete).toEqual(true);
     });
   });
+
+  describe('getCommentsByThreadId function', () => {
+    it('should return comments for given threadId from database', async () => {
+      // Arrange
+      await UsersTableTestHelper.addUser({ id: 'user-123', username: 'dicoding' });
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-123' });
+      await CommentsTableTestHelper.addComment({
+        id: 'comment-123',
+        threadId: 'thread-123',
+        owner: 'user-123',
+        content: 'sebuah comment',
+        date: '2026-10-17T00:00:00.000Z',
+      });
+
+      const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, {});
+
+      // Action
+      const comments = await commentRepositoryPostgres.getCommentsByThreadId('thread-123');
+
+      // Assert
+      expect(comments).toHaveLength(1);
+      expect(comments[0].id).toEqual('comment-123');
+      expect(comments[0].username).toEqual('dicoding');
+      expect(comments[0].content).toEqual('sebuah comment');
+      expect(comments[0].is_delete).toEqual(false);
+      expect(comments[0].date).toBeDefined();
+    });
+  });
+
+  describe('getRepliesByThreadId function', () => {
+    it('should return replies for given threadId from database', async () => {
+      // Arrange
+      await UsersTableTestHelper.addUser({ id: 'user-123', username: 'dicoding' });
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-123' });
+      await CommentsTableTestHelper.addComment({
+        id: 'comment-123',
+        threadId: 'thread-123',
+        owner: 'user-123',
+      });
+      await CommentsTableTestHelper.addComment({
+        id: 'reply-123',
+        threadId: 'thread-123',
+        owner: 'user-123',
+        replyTo: 'comment-123',
+        content: 'sebuah balasan',
+        date: '2026-10-17T00:00:00.000Z',
+      });
+
+      const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, {});
+
+      // Action
+      const replies = await commentRepositoryPostgres.getRepliesByThreadId('thread-123');
+
+      // Assert
+      expect(replies).toHaveLength(1);
+      expect(replies[0].id).toEqual('reply-123');
+      expect(replies[0].reply_to).toEqual('comment-123');
+      expect(replies[0].username).toEqual('dicoding');
+      expect(replies[0].content).toEqual('sebuah balasan');
+      expect(replies[0].is_delete).toEqual(false);
+      expect(replies[0].date).toBeDefined();
+    });
+  });
 });
