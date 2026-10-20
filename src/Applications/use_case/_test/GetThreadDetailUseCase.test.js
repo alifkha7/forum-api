@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { describe, expect, it, vi } from 'vitest';
 import ThreadRepository from '../../../Domains/threads/ThreadRepository.js';
 import CommentRepository from '../../../Domains/comments/CommentRepository.js';
