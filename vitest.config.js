@@ -5,6 +5,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['dotenv/config'],
     testTimeout: 15000,
+    fileParallelism: false,
     coverage: {
       exclude: [
         ...configDefaults.coverage.exclude,

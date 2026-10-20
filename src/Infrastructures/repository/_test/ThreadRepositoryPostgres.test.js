@@ -4,6 +4,7 @@ import {
 import pool from '../../database/postgres/pool.js';
 import UsersTableTestHelper from '../../../../tests/UsersTableTestHelper.js';
 import ThreadsTableTestHelper from '../../../../tests/ThreadsTableTestHelper.js';
+import CommentsTableTestHelper from '../../../../tests/CommentsTableTestHelper.js';
 import NewThread from '../../../Domains/threads/entities/NewThread.js';
 import AddedThread from '../../../Domains/threads/entities/AddedThread.js';
 import ThreadRepositoryPostgres from '../ThreadRepositoryPostgres.js';
@@ -11,6 +12,7 @@ import NotFoundError from '../../../Commons/exceptions/NotFoundError.js';
 
 describe('ThreadRepositoryPostgres', () => {
   afterEach(async () => {
+    await CommentsTableTestHelper.cleanTable();
     await ThreadsTableTestHelper.cleanTable();
     await UsersTableTestHelper.cleanTable();
   });
