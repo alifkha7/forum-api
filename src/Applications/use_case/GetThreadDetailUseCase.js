@@ -2,9 +2,10 @@ import DetailComment from '../../Domains/comments/entities/DetailComment.js';
 import DetailReply from '../../Domains/replies/entities/DetailReply.js';
 
 class GetThreadDetailUseCase {
-  constructor({ threadRepository, commentRepository }) {
+  constructor({ threadRepository, commentRepository, likeRepository }) {
     this._threadRepository = threadRepository;
     this._commentRepository = commentRepository;
+    this._likeRepository = likeRepository;
   }
 
   async execute(threadId) {
@@ -13,6 +14,13 @@ class GetThreadDetailUseCase {
       this._commentRepository.getCommentsByThreadId(threadId),
       this._commentRepository.getRepliesByThreadId(threadId),
     ]);
+
+    const commentIds = rawComments.map((comment) => comment.id);
+    const rawLikeCounts = await this._likeRepository.getLikeCountsByCommentIds(commentIds);
+    const likeCountMap = rawLikeCounts.reduce((acc, row) => {
+      acc[row.comment_id] = row.like_count;
+      return acc;
+    }, {});
 
     // Group replies by parent comment
     const repliesByCommentId = rawReplies.reduce((acc, reply) => {
@@ -41,6 +49,7 @@ class GetThreadDetailUseCase {
 
     const comments = rawComments.map((comment) => {
       const commentReplies = repliesByCommentId[comment.id] || [];
+      const likeCount = likeCountMap[comment.id] || 0;
 
       const detailComment = new DetailComment({
         id: comment.id,
@@ -49,14 +58,16 @@ class GetThreadDetailUseCase {
         content: comment.content,
         isDelete: comment.is_delete,
         replies: commentReplies,
+        likeCount,
       });
 
       return {
         id: detailComment.id,
         username: detailComment.username,
         date: detailComment.date,
-        replies: detailComment.replies,
         content: detailComment.content,
+        likeCount: detailComment.likeCount,
+        replies: detailComment.replies,
       };
     });
 

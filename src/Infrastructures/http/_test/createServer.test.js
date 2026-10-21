@@ -973,6 +973,11 @@ describe('HTTP server', () => {
         .delete(`/threads/${threadId}/comments/${comment1Id}/replies/${reply1Id}`)
         .set('Authorization', `Bearer ${dicodingToken}`);
 
+      // Like comment 1 using dicodingToken
+      await request(serverApp)
+        .put(`/threads/${threadId}/comments/${comment1Id}/likes`)
+        .set('Authorization', `Bearer ${dicodingToken}`);
+
       // Action: GET thread detail (public endpoint, no token)
       const response = await request(serverApp).get(`/threads/${threadId}`);
 
@@ -986,11 +991,12 @@ describe('HTTP server', () => {
       expect(response.body.data.thread.username).toEqual('dicoding');
       expect(response.body.data.thread.comments).toHaveLength(2);
 
-      // Comment 1 is deleted, should have masked content and 2 replies
+      // Comment 1 is deleted, should have masked content, 2 replies, and likeCount 1
       const [firstComment, secondComment] = response.body.data.thread.comments;
       expect(firstComment.id).toEqual(comment1Id);
       expect(firstComment.username).toEqual('dicoding');
       expect(firstComment.content).toEqual('**komentar telah dihapus**');
+      expect(firstComment.likeCount).toEqual(1);
       expect(firstComment.replies).toHaveLength(2);
 
       // Reply 1 is deleted, Reply 2 is active
@@ -1002,10 +1008,11 @@ describe('HTTP server', () => {
       expect(firstComment.replies[1].content).toEqual('balasan kedua');
       expect(firstComment.replies[1].username).toEqual('johndoe');
 
-      // Comment 2 is active with no replies
+      // Comment 2 is active with no replies and likeCount 0
       expect(secondComment.id).toEqual(comment2Id);
       expect(secondComment.username).toEqual('johndoe');
       expect(secondComment.content).toEqual('komentar kedua');
+      expect(secondComment.likeCount).toEqual(0);
       expect(secondComment.replies).toEqual([]);
     });
 

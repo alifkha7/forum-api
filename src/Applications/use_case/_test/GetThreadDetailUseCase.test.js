@@ -1,11 +1,14 @@
 /* eslint-disable camelcase */
-import { describe, expect, it, vi } from 'vitest';
+import {
+  describe, expect, it, vi,
+} from 'vitest';
 import ThreadRepository from '../../../Domains/threads/ThreadRepository.js';
 import CommentRepository from '../../../Domains/comments/CommentRepository.js';
+import LikeRepository from '../../../Domains/likes/LikeRepository.js';
 import GetThreadDetailUseCase from '../GetThreadDetailUseCase.js';
 
 describe('GetThreadDetailUseCase', () => {
-  it('should orchestrate get thread detail with comments and replies correctly', async () => {
+  it('should orchestrate get thread detail with comments, replies, and likeCount correctly', async () => {
     // Arrange
     const threadId = 'thread-123';
 
@@ -54,16 +57,26 @@ describe('GetThreadDetailUseCase', () => {
       },
     ];
 
+    const mockLikeCounts = [
+      {
+        comment_id: 'comment-1',
+        like_count: 2,
+      },
+    ];
+
     const mockThreadRepository = new ThreadRepository();
     const mockCommentRepository = new CommentRepository();
+    const mockLikeRepository = new LikeRepository();
 
     mockThreadRepository.getThreadById = vi.fn().mockImplementation(() => Promise.resolve(mockThread));
     mockCommentRepository.getCommentsByThreadId = vi.fn().mockImplementation(() => Promise.resolve(mockComments));
     mockCommentRepository.getRepliesByThreadId = vi.fn().mockImplementation(() => Promise.resolve(mockReplies));
+    mockLikeRepository.getLikeCountsByCommentIds = vi.fn().mockImplementation(() => Promise.resolve(mockLikeCounts));
 
     const getThreadDetailUseCase = new GetThreadDetailUseCase({
       threadRepository: mockThreadRepository,
       commentRepository: mockCommentRepository,
+      likeRepository: mockLikeRepository,
     });
 
     // Action
@@ -73,6 +86,7 @@ describe('GetThreadDetailUseCase', () => {
     expect(mockThreadRepository.getThreadById).toHaveBeenCalledWith(threadId);
     expect(mockCommentRepository.getCommentsByThreadId).toHaveBeenCalledWith(threadId);
     expect(mockCommentRepository.getRepliesByThreadId).toHaveBeenCalledWith(threadId);
+    expect(mockLikeRepository.getLikeCountsByCommentIds).toHaveBeenCalledWith(['comment-1', 'comment-2']);
 
     expect(threadDetail).toStrictEqual({
       id: 'thread-123',
@@ -86,6 +100,7 @@ describe('GetThreadDetailUseCase', () => {
           username: 'johndoe',
           date: '2026-10-17T01:00:00.000Z',
           content: 'komentar pertama',
+          likeCount: 2,
           replies: [
             {
               id: 'reply-1',
@@ -106,6 +121,7 @@ describe('GetThreadDetailUseCase', () => {
           username: 'dicoding',
           date: '2026-10-17T02:00:00.000Z',
           content: '**komentar telah dihapus**',
+          likeCount: 0,
           replies: [],
         },
       ],

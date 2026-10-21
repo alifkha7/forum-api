@@ -26,6 +26,21 @@ describe('a DetailComment entity', () => {
     expect(() => new DetailComment(payload)).toThrowError('DETAIL_COMMENT.NOT_MEET_DATA_TYPE_SPECIFICATION');
   });
 
+  it('should throw error when likeCount did not meet data type specification', () => {
+    // Arrange
+    const payload = {
+      id: 'comment-123',
+      username: 'dicoding',
+      date: '2026-10-17T00:00:00.000Z',
+      content: 'sebuah comment',
+      isDelete: false,
+      likeCount: '0',
+    };
+
+    // Action and Assert
+    expect(() => new DetailComment(payload)).toThrowError('DETAIL_COMMENT.NOT_MEET_DATA_TYPE_SPECIFICATION');
+  });
+
   it('should create detailComment object with original content when isDelete is false', () => {
     // Arrange
     const payload = {
@@ -46,6 +61,26 @@ describe('a DetailComment entity', () => {
     expect(detailComment.date).toEqual(payload.date);
     expect(detailComment.content).toEqual('sebuah comment');
     expect(detailComment.replies).toEqual([]);
+    expect(detailComment.likeCount).toEqual(0);
+  });
+
+  it('should assign likeCount correctly when provided', () => {
+    // Arrange
+    const payload = {
+      id: 'comment-123',
+      username: 'dicoding',
+      date: '2026-10-17T00:00:00.000Z',
+      content: 'sebuah comment',
+      isDelete: false,
+      replies: [],
+      likeCount: 5,
+    };
+
+    // Action
+    const detailComment = new DetailComment(payload);
+
+    // Assert
+    expect(detailComment.likeCount).toEqual(5);
   });
 
   it('should mask content as "**komentar telah dihapus**" when isDelete is true (Tip 3)', () => {
