@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import DomainErrorTranslator from '../DomainErrorTranslator.js';
 import InvariantError from '../InvariantError.js';
 
@@ -11,9 +12,9 @@ describe('DomainErrorTranslator', () => {
       .toStrictEqual(new InvariantError('tidak dapat membuat user baru karena karakter username melebihi batas limit'));
     expect(DomainErrorTranslator.translate(new Error('REGISTER_USER.USERNAME_CONTAIN_RESTRICTED_CHARACTER')))
       .toStrictEqual(new InvariantError('tidak dapat membuat user baru karena username mengandung karakter terlarang'));
-    expect(DomainErrorTranslator.translate(new Error('TOGGLE_LIKE_COMMENT_USE_CASE.NOT_CONTAIN_NEEDED_PROPERTY')))
+    expect(DomainErrorTranslator.translate(new Error('TOGGLE_LIKE_COMMENT.NOT_CONTAIN_NEEDED_PROPERTY')))
       .toStrictEqual(new InvariantError('tidak dapat memproses like karena properti yang dibutuhkan tidak ada'));
-    expect(DomainErrorTranslator.translate(new Error('TOGGLE_LIKE_COMMENT_USE_CASE.PAYLOAD_NOT_MEET_DATA_TYPE_SPECIFICATION')))
+    expect(DomainErrorTranslator.translate(new Error('TOGGLE_LIKE_COMMENT.NOT_MEET_DATA_TYPE_SPECIFICATION')))
       .toStrictEqual(new InvariantError('tidak dapat memproses like karena tipe data tidak sesuai'));
   });
 

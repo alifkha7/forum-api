@@ -10,13 +10,14 @@ class GetThreadDetailUseCase {
 
   async execute(threadId) {
     const thread = await this._threadRepository.getThreadById(threadId);
-    const [rawComments, rawReplies] = await Promise.all([
-      this._commentRepository.getCommentsByThreadId(threadId),
+    const rawComments = await this._commentRepository.getCommentsByThreadId(threadId);
+    const commentIds = rawComments.map((comment) => comment.id);
+
+    const [rawReplies, rawLikeCounts] = await Promise.all([
       this._commentRepository.getRepliesByThreadId(threadId),
+      this._likeRepository.getLikeCountsByCommentIds(commentIds),
     ]);
 
-    const commentIds = rawComments.map((comment) => comment.id);
-    const rawLikeCounts = await this._likeRepository.getLikeCountsByCommentIds(commentIds);
     const likeCountMap = rawLikeCounts.reduce((acc, row) => {
       acc[row.comment_id] = row.like_count;
       return acc;

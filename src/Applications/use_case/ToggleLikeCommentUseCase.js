@@ -1,3 +1,5 @@
+import ToggleLikeComment from '../../Domains/likes/entities/ToggleLikeComment.js';
+
 class ToggleLikeCommentUseCase {
   constructor({ threadRepository, commentRepository, likeRepository }) {
     this._threadRepository = threadRepository;
@@ -6,8 +8,7 @@ class ToggleLikeCommentUseCase {
   }
 
   async execute(useCasePayload) {
-    this._verifyPayload(useCasePayload);
-    const { threadId, commentId, userId } = useCasePayload;
+    const { threadId, commentId, userId } = new ToggleLikeComment(useCasePayload);
 
     await this._threadRepository.verifyAvailableThread(threadId);
     await this._commentRepository.verifyAvailableComment(commentId);
@@ -18,16 +19,6 @@ class ToggleLikeCommentUseCase {
       await this._likeRepository.unlikeComment(userId, commentId);
     } else {
       await this._likeRepository.likeComment(userId, commentId);
-    }
-  }
-
-  _verifyPayload({ threadId, commentId, userId }) {
-    if (!threadId || !commentId || !userId) {
-      throw new Error('TOGGLE_LIKE_COMMENT_USE_CASE.NOT_CONTAIN_NEEDED_PROPERTY');
-    }
-
-    if (typeof threadId !== 'string' || typeof commentId !== 'string' || typeof userId !== 'string') {
-      throw new Error('TOGGLE_LIKE_COMMENT_USE_CASE.PAYLOAD_NOT_MEET_DATA_TYPE_SPECIFICATION');
     }
   }
 }

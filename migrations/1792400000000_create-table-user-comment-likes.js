@@ -23,6 +23,8 @@ export const up = (pgm) => {
     'unique_user_comment_like',
     'UNIQUE(user_id, comment_id)',
   );
+
+  pgm.createIndex('user_comment_likes', 'comment_id');
 };
 
 export const down = (pgm) => {
