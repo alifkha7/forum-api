@@ -9,8 +9,10 @@ class GetThreadDetailUseCase {
 
   async execute(threadId) {
     const thread = await this._threadRepository.getThreadById(threadId);
-    const rawComments = await this._commentRepository.getCommentsByThreadId(threadId);
-    const rawReplies = await this._commentRepository.getRepliesByThreadId(threadId);
+    const [rawComments, rawReplies] = await Promise.all([
+      this._commentRepository.getCommentsByThreadId(threadId),
+      this._commentRepository.getRepliesByThreadId(threadId),
+    ]);
 
     // Group replies by parent comment
     const repliesByCommentId = rawReplies.reduce((acc, reply) => {
