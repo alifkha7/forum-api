@@ -7,7 +7,6 @@ describe('LikeRepository interface', () => {
     const likeRepository = new LikeRepository();
 
     // Action and Assert
-    expect(true).toBe(false);
     await expect(likeRepository.likeComment('', '')).rejects.toThrowError('LIKE_REPOSITORY.METHOD_NOT_IMPLEMENTED');
     await expect(likeRepository.unlikeComment('', '')).rejects.toThrowError('LIKE_REPOSITORY.METHOD_NOT_IMPLEMENTED');
     await expect(likeRepository.isCommentLiked('', '')).rejects.toThrowError('LIKE_REPOSITORY.METHOD_NOT_IMPLEMENTED');
